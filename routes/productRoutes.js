@@ -15,5 +15,5 @@ router.post('/upload', upload.single('image'), (req, res) => {
 router.get('/', controller.getProducts);
 router.delete('/:id', auth, controller.deleteProduct);
 router.put('/:id', auth, upload.array('images', 5), controller.updateProduct);
-
+router.get('/:id', controller.getProductById);
 module.exports = router;
