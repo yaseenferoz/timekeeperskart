@@ -13,24 +13,24 @@ app.use(express.json());
 const productRoutes = require('./routes/productRoutes');
 app.use('/api/products', productRoutes);
 
-
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+  res.send("Backend + DB running 🚀");
+});
+
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB Connected ✅");
-    
-    // Start server ONLY after DB is connected
+
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
 
   })
   .catch(err => console.log("MongoDB Error ❌", err));
-  res.send("Backend LIVE 🚀 v2");
-
-app.get('/', (req, res) => {
-  res.send("Backend + DB running 🚀");
-});
