@@ -29,6 +29,7 @@ mongoose.connect(process.env.MONGO_URI)
 
   })
   .catch(err => console.log("MongoDB Error ❌", err));
+  res.send("Backend LIVE 🚀 v2");
 
 // Test route
 app.get('/', (req, res) => {
