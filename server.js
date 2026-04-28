@@ -5,9 +5,10 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// Middleware
+// ✅ Middleware (IMPORTANT FIX)
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" })); // ✅ increase limit
+app.use(express.urlencoded({ limit: "50mb", extended: true })); // ✅ for form-data
 
 // Routes
 const productRoutes = require('./routes/productRoutes');
