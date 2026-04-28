@@ -10,7 +10,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "hhttps://timekeeperskart-admin.vercel.app/", // 🔥 replace this
+      "https://timekeeperskart-admin.vercel.app/", // 🔥 replace this
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
