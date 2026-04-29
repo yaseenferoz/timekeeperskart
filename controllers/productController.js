@@ -6,12 +6,15 @@ const s3 = require("../utils/s3");
 // ✅ GET all products (with filters + pagination)
 exports.getProducts = async (req, res) => {
   try {
-    const { brand, gender, minPrice, maxPrice, search, page = 1 } = req.query;
+    const { brand, gender, category, minPrice, maxPrice, search, page = 1 } = req.query;
 
     let filter = {};
 
     if (brand) filter.brand = brand;
     if (gender) filter.gender = gender;
+
+    // ✅ NEW
+    if (category) filter.category = category;
 
     if (minPrice || maxPrice) {
       filter.price = {};
@@ -39,12 +42,11 @@ exports.getProducts = async (req, res) => {
 };
 
 
-// ✅ CREATE product (with validation)
+// ✅ CREATE product (UPDATED)
 exports.createProduct = async (req, res) => {
   try {
     const { name, price } = req.body;
 
-    // validation
     if (!name || !price) {
       return res.status(400).json({ message: "Name and price are required" });
     }
@@ -56,8 +58,14 @@ exports.createProduct = async (req, res) => {
       brand: req.body.brand,
       price: Number(price),
       gender: req.body.gender,
+
+      // ✅ NEW
+      category: req.body.category,
+
+      // existing watch fields
       movement: req.body.movement,
       style: req.body.style,
+
       description: req.body.description,
 
       images: imageUrls,
@@ -67,6 +75,16 @@ exports.createProduct = async (req, res) => {
         strapMaterial: req.body.strapMaterial,
         waterResistance: req.body.waterResistance,
         caseSize: req.body.caseSize
+      },
+
+      // ✅ NEW FLEXIBLE ATTRIBUTES
+      attributes: {
+        lens: req.body.lens,
+        uv: req.body.uv,
+        size: req.body.size,
+        material: req.body.material,
+        battery: req.body.battery,
+        display: req.body.display
       }
     });
 
@@ -81,7 +99,7 @@ exports.createProduct = async (req, res) => {
 };
 
 
-// ✅ DELETE product (with safe S3 cleanup)
+// ✅ DELETE product (same)
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -90,7 +108,6 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // delete images from S3 safely
     for (let url of product.images) {
       if (url && url.includes(".amazonaws.com/")) {
         const key = url.split(".amazonaws.com/")[1];
@@ -112,7 +129,7 @@ exports.deleteProduct = async (req, res) => {
 };
 
 
-// ✅ UPDATE product (full update support)
+// ✅ UPDATE product (UPDATED)
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -121,7 +138,7 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // If new images uploaded → delete old ones
+    // Replace images if new uploaded
     if (req.files && req.files.length > 0) {
       for (let url of product.images) {
         if (url && url.includes(".amazonaws.com/")) {
@@ -137,13 +154,19 @@ exports.updateProduct = async (req, res) => {
       product.images = req.files.map(file => file.location);
     }
 
-    // update fields
+    // Basic fields
     product.name = req.body.name || product.name;
     product.brand = req.body.brand || product.brand;
     product.price = req.body.price ? Number(req.body.price) : product.price;
     product.gender = req.body.gender || product.gender;
+
+    // ✅ NEW
+    product.category = req.body.category || product.category;
+
+    // Watch fields
     product.movement = req.body.movement || product.movement;
     product.style = req.body.style || product.style;
+
     product.description = req.body.description || product.description;
 
     product.specs = {
@@ -151,6 +174,16 @@ exports.updateProduct = async (req, res) => {
       strapMaterial: req.body.strapMaterial || product.specs?.strapMaterial,
       waterResistance: req.body.waterResistance || product.specs?.waterResistance,
       caseSize: req.body.caseSize || product.specs?.caseSize
+    };
+
+    // ✅ NEW dynamic attributes
+    product.attributes = {
+      lens: req.body.lens || product.attributes?.lens,
+      uv: req.body.uv || product.attributes?.uv,
+      size: req.body.size || product.attributes?.size,
+      material: req.body.material || product.attributes?.material,
+      battery: req.body.battery || product.attributes?.battery,
+      display: req.body.display || product.attributes?.display
     };
 
     await product.save();
@@ -163,7 +196,7 @@ exports.updateProduct = async (req, res) => {
 };
 
 
-// ✅ GET single product
+// ✅ GET single product (same)
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
