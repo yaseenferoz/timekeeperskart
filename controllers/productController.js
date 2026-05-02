@@ -26,15 +26,20 @@ exports.getProducts = async (req, res) => {
       filter.name = { $regex: search, $options: 'i' };
     }
 
-    const limit = 10;
-    const skip = (page - 1) * limit;
+const pageNumber = Number(page) || 1;
+const limit = req.query.limit ? Number(req.query.limit) : null;
 
-    const products = await Product.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+let query = Product.find(filter).sort({ createdAt: -1 });
 
-    res.json(products);
+if (limit) {
+  const skip = (pageNumber - 1) * limit;
+  query = query.skip(skip).limit(limit);
+}
+
+const products = await query;
+
+res.json(products);
+ 
 
   } catch (err) {
     res.status(500).json({ error: err.message });
